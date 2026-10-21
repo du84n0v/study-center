@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O'quv Markazi — Boshqaruv Paneli</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col md:flex-row min-h-screen">
+
+    <!-- 1. SIDEBAR (Desktop uchun chapda, mobil uchun tepada/pastda) -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between shadow-xl">
+        <div>
+            <!-- Logo / Brend -->
+            <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 font-bold text-lg">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-wide">EcomDev Edu</h1>
+                    <span class="text-xs text-slate-400">Hisob-kitob tizimi</span>
+                </div>
+            </div>
+
+            <!-- Menyu tugmalari -->
+            <nav class="p-4 space-y-1">
+                <!-- 1. Qarzdorlar (Default Active) -->
+                <button onclick="switchTab('debtors')" id="tab-btn-debtors"
+                        class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-hand-holding-dollar text-base"></i>
+                    <span>Qarzdorlar (Debt)</span>
+                </button>
+
+                <!-- 2. O'quvchilar -->
+                <button onclick="switchTab('students')" id="tab-btn-students"
+                        class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-200 text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-user-graduate text-base"></i>
+                    <span>O'quvchilar (Students)</span>
+                </button>
+
+                <!-- 3. To'lovlar -->
+                <button onclick="switchTab('payments')" id="tab-btn-payments"
+                        class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-200 text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-receipt text-base"></i>
+                    <span>To'lovlar (Payments)</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 hidden md:block">
+            <div class="text-xs text-slate-500 text-center">Spring Boot 3 + PostgreSQL</div>
+        </div>
+    </aside>
+
+    <!-- 2. ASOSIY KONTENT HUDUDI -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+        <!-- Tepasi (Header) -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <h2 id="pageTitle" class="text-xl font-bold text-slate-800">Qarzdorlar hisoboti</h2>
+            <div class="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                <i class="fa-regular fa-clock mr-1"></i> <span id="currentDateDisplay"></span>
+            </div>
+        </header>
+
+        <!-- Tepa o'ng burchakdagi bildirishnoma (Toast - modalning ustida turadi, 3 soniya) -->
+        <div id="toast" class="hidden fixed top-5 right-5 z-[9999] max-w-sm px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 transition-all duration-300 transform">
+            <i id="toastIcon" class="fa-solid fa-circle-exclamation text-lg"></i>
+            <span id="toastMsg">Xatolik</span>
+        </div>
+
+        <div class="p-4 md:p-8 space-y-6 max-w-6xl mx-auto w-full">
+
+            <!-- ==================== 1-TAB: QARZDORLAR (DEFAULT) ==================== -->
+            <section id="tab-debtors" class="space-y-6">
+                <!-- Filtrlar va Statistika -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm md:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Qaysi oy bo'yicha:</label>
+                        <div class="flex gap-2">
+                            <input type="month" id="debtorMonthInput" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button onclick="loadDebtors()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Qarzdorlar soni</span>
+                            <h3 id="totalDebtorsCount" class="text-2xl font-black text-slate-800 mt-1">0 nafar</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Jami qarz summasi</span>
+                            <h3 id="totalDebtSum" class="text-2xl font-black text-red-600 mt-1">0 so'm</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qarzdorlar jadvali -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800">Qarzdor o'quvchilar ro'yxati</h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-400 font-semibold border-b">
+                                <tr>
+                                    <th class="py-3.5 px-4">O'quvchi</th>
+                                    <th class="py-3.5 px-4">Guruh</th>
+                                    <th class="py-3.5 px-4">Telefon</th>
+                                    <th class="py-3.5 px-4">Oylik to'lov</th>
+                                    <th class="py-3.5 px-4">To'langan</th>
+                                    <th class="py-3.5 px-4 text-red-600">Qolgan qarz</th>
+                                    <th class="py-3.5 px-4 text-center">Amal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debtorsTableBody" class="divide-y divide-slate-100">
+                                <tr><td colspan="7" class="py-8 text-center text-slate-400">Yuklanmoqda...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ==================== 2-TAB: O'QUVCHILAR (CRUD) ==================== -->
+            <section id="tab-students" class="space-y-6 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Barcha o'quvchilar</h3>
+                        <p class="text-xs text-slate-500">O'quvchilarni yaratish, tahrirlash va o'chirish</p>
+                    </div>
+                    <button onclick="openStudentModal()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Yangi o'quvchi
+                    </button>
+                </div>
+
+                <!-- O'quvchilar jadvali -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-400 font-semibold border-b">
+                                <tr>
+                                    <th class="py-3.5 px-4">ID</th>
+                                    <th class="py-3.5 px-4">To'liq ism (F.I.O)</th>
+                                    <th class="py-3.5 px-4">Telefon</th>
+                                    <th class="py-3.5 px-4">Guruh</th>
+                                    <th class="py-3.5 px-4">Oylik to'lovi</th>
+                                    <th class="py-3.5 px-4 text-center">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTableBody" class="divide-y divide-slate-100">
+                                <tr><td colspan="6" class="py-8 text-center text-slate-400">Yuklanmoqda...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ==================== 3-TAB: TO'LOVLAR (PAYMENTS) ==================== -->
+            <section id="tab-payments" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Yangi to'lov kiritish formasi -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1 h-fit">
+                        <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave text-indigo-600"></i> To'lov qabul qilish
+                        </h3>
+                        <form id="paymentForm" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">O'quvchi</label>
+                                <select id="paymentStudentSelect" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="">O'quvchini tanlang...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">To'lov summasi (so'm)</label>
+                                <input type="number" id="paymentAmountInput" min="1" step="any" placeholder="Masalan: 800000" required
+                                       class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">To'lov sanasi</label>
+                                <input type="date" id="paymentDateInput" required
+                                       class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <button type="submit" id="savePaymentBtn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow-md transition">
+                                To'lovni kiritish
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- O'quvchining to'lovlar tarixi -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                            <h3 class="text-base font-bold text-slate-800">To'lovlar tarixi (O'quvchi bo'yicha)</h3>
+                            <select id="historyStudentSelect" onchange="loadStudentPaymentHistory(this.value)"
+                                    class="w-full sm:w-64 rounded-xl border border-slate-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="">O'quvchini tanlang...</option>
+                            </select>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-400 font-semibold border-b">
+                                    <tr>
+                                        <th class="py-3 px-3">Chek ID</th>
+                                        <th class="py-3 px-3">To'langan summa</th>
+                                        <th class="py-3 px-3">To'lov sanasi</th>
+                                        <th class="py-3 px-3">Tizimga yozilgan vaqt</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentHistoryTableBody" class="divide-y divide-slate-100">
+                                    <tr><td colspan="4" class="py-8 text-center text-slate-400">Tarixni ko'rish uchun o'quvchini tanlang.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ==================== MODAL: O'QUVCHI QO'SHISH VA TAHRIRLASH ==================== -->
+    <div id="studentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeStudentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 id="studentModalTitle" class="text-lg font-bold text-slate-800 mb-4">Yangi o'quvchi qo'shish</h3>
+            
+            <form id="studentForm" class="space-y-4">
+                <input type="hidden" id="studentEditId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">F.I.O (Ism-Familiya)</label>
+                    <input type="text" id="mFullName" placeholder="Ali Valiyev" required
+                           class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Telefon raqami</label>
+                    <input type="text" id="mPhone" placeholder="+998901234567" required
+                           class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Guruh nomi</label>
+                    <input type="text" id="mGroup" placeholder="Java Backend-01" required
+                           class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Oylik to'lov summasi (so'm)</label>
+                    <input type="number" id="mMonthlyFee" min="0" step="any" placeholder="1000000" required
+                           class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeStudentModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50">Bekor qilish</button>
+                    <button type="submit" id="saveStudentBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium shadow-md">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ==================== JAVASCRIPT MANTIG'I ==================== -->
+    <script>
+        const API = ''; // localhost:8080
+
+        let studentsList = [];
+
+        // 1. Dastlabki yuklash
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const currentMonth = today.slice(0, 7);
+
+            document.getElementById('currentDateDisplay').innerText = today;
+            document.getElementById('debtorMonthInput').value = currentMonth;
+            document.getElementById('paymentDateInput').value = today;
+
+            // Default: Qarzdorlarni va Studentlarni yuklash
+            loadStudentsData();
+            loadDebtors();
+        });
+
+        // 2. Tablarni almashtirish
+        function switchTab(tabName) {
+            ['debtors', 'students', 'payments'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-200 text-slate-400 hover:text-white hover:bg-slate-800";
+            });
+
+            // Aktiv tab
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/30";
+
+            // Sarlavha
+            const titles = {
+                debtors: "Qarzdorlar hisoboti",
+                students: "O'quvchilar boshqaruvi (CRUD)",
+                payments: "To'lovlar qabuli va tarixi"
+            };
+            document.getElementById('pageTitle').innerText = titles[tabName];
+
+            if (tabName === 'debtors') loadDebtors();
+            if (tabName === 'students') loadStudentsData();
+            if (tabName === 'payments') populateStudentSelects();
+        }
+
+        // 3. TOAST (Tepa o'ng burchakda 3 soniya chiqadigan bildirishnoma)
+        let toastTimeout;
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            // Oldingi taymer bo'lsa to'xtatamiz
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            toastMsg.innerText = message;
+
+            if (isSuccess) {
+                toast.className = "fixed top-5 right-5 z-[9999] max-w-sm px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 bg-emerald-600 text-white transition-all duration-300 transform";
+                toastIcon.className = "fa-solid fa-circle-check text-lg text-emerald-100";
+            } else {
+                toast.className = "fixed top-5 right-5 z-[9999] max-w-sm px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 bg-red-600 text-white shadow-red-500/30 transition-all duration-300 transform";
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-lg text-red-100";
+            }
+
+            // Ko'rsatish
+            toast.classList.remove('hidden');
+
+            // Aynan 3 soniya (3000 ms) turadi va yo'qoladi
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Universal xatolikni o'qib olish (BaseException plain string, Validation errors[] yoki JSON)
+        async function getErrorMessage(res) {
+            try {
+                const text = await res.text();
+                try {
+                    const json = JSON.parse(text);
+                    if (json.errors && Array.isArray(json.errors) && json.errors.length > 0) {
+                        return json.errors.join(", ");
+                    }
+                    return json.message || json.error || text;
+                } catch {
+                    return text || "Xatolik yuz berdi";
+                }
+            } catch {
+                return "Server bilan bog'lanishda xatolik";
+            }
+        }
+
+        // ==================== QARZDORLAR (DEBTORS) ====================
+        async function loadDebtors() {
+            const month = document.getElementById('debtorMonthInput').value;
+            const tbody = document.getElementById('debtorsTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400">Yuklanmoqda...</td></tr>';
+
+            try {
+                const res = await fetch(`${API}/api/debtors?month=${month}`);
+                const data = await res.json();
+
+                let totalDebt = 0;
+                document.getElementById('totalDebtorsCount').innerText = `${data.length} nafar`;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-emerald-600 font-medium">🎉 Bu oyda hech qanday qarzdor yo\'q!</td></tr>';
+                    document.getElementById('totalDebtSum').innerText = "0 so'm";
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.forEach(d => {
+                    totalDebt += Number(d.debtAmount);
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 font-semibold text-slate-800">${d.fullName}</td>
+                            <td class="py-3 px-4"><span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-medium">${d.groupName}</span></td>
+                            <td class="py-3 px-4 text-xs text-slate-500">${d.phoneNumber}</td>
+                            <td class="py-3 px-4">${Number(d.monthlyFee).toLocaleString()} so'm</td>
+                            <td class="py-3 px-4 text-emerald-600 font-medium">${Number(d.totalPaid).toLocaleString()} so'm</td>
+                            <td class="py-3 px-4 font-bold text-red-600">${Number(d.debtAmount).toLocaleString()} so'm</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="quickPay(${d.studentId}, ${d.debtAmount})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg text-xs transition">
+                                    <i class="fa-solid fa-credit-card mr-1"></i> To'lash
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('totalDebtSum').innerText = `${totalDebt.toLocaleString()} so'm`;
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-500">Qarzdorlarni yuklashda xatolik yuz berdi.</td></tr>';
+            }
+        }
+
+        // Tezkor to'lov tugmasi (Qarzdorlar jadvalidan to'g'ridan to'g'ri to'lov bo'limiga o'tkazish)
+        function quickPay(studentId, debtAmount) {
+            switchTab('payments');
+            document.getElementById('paymentStudentSelect').value = studentId;
+            document.getElementById('paymentAmountInput').value = debtAmount;
+        }
+
+        // ==================== O'QUVCHILAR (STUDENTS CRUD) ====================
+        async function loadStudentsData() {
+            const tbody = document.getElementById('studentsTableBody');
+            try {
+                const res = await fetch(`${API}/api/students`);
+                studentsList = await res.json();
+                populateStudentSelects();
+
+                if (studentsList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-400">O\'quvchilar hali mavjud emas. Yuqoridagi tugma orqali qo\'shing.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                studentsList.forEach(s => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4 font-mono text-xs text-slate-400">#${s.id}</td>
+                            <td class="py-3.5 px-4 font-semibold text-slate-800">${s.fullName}</td>
+                            <td class="py-3.5 px-4 text-xs text-slate-500">${s.phoneNumber}</td>
+                            <td class="py-3.5 px-4"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-medium">${s.groupName}</span></td>
+                            <td class="py-3.5 px-4 font-medium text-slate-700">${Number(s.monthlyFee).toLocaleString()} so'm</td>
+                            <td class="py-3.5 px-4 text-center space-x-1">
+                                <button onclick="editStudent(${s.id})" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs transition" title="Tahrirlash">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteStudent(${s.id}, '${s.fullName}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg text-xs transition" title="O'chirish">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-red-500">O\'quvchilarni yuklashda xatolik.</td></tr>';
+            }
+        }
+
+        function populateStudentSelects() {
+            const selects = [document.getElementById('paymentStudentSelect'), document.getElementById('historyStudentSelect')];
+            selects.forEach(sel => {
+                if (!sel) return;
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">O\'quvchini tanlang...</option>';
+                studentsList.forEach(s => {
+                    sel.innerHTML += `<option value="${s.id}">${s.fullName} (${s.groupName})</option>`;
+                });
+                if (currentVal) sel.value = currentVal;
+            });
+        }
+
+        // Modal ochish (Yangi)
+        function openStudentModal() {
+            document.getElementById('studentEditId').value = '';
+            document.getElementById('mFullName').value = '';
+            document.getElementById('mPhone').value = '';
+            document.getElementById('mGroup').value = '';
+            document.getElementById('mMonthlyFee').value = '';
+            document.getElementById('studentModalTitle').innerText = "Yangi o'quvchi qo'shish";
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        // Modal ochish (Tahrirlash)
+        function editStudent(id) {
+            const student = studentsList.find(s => s.id === id);
+            if (!student) return;
+            document.getElementById('studentEditId').value = student.id;
+            document.getElementById('mFullName').value = student.fullName;
+            document.getElementById('mPhone').value = student.phoneNumber;
+            document.getElementById('mGroup').value = student.groupName;
+            document.getElementById('mMonthlyFee').value = student.monthlyFee;
+            document.getElementById('studentModalTitle').innerText = "O'quvchini tahrirlash";
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        // O'quvchini saqlash (POST yoki PUT)
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('studentEditId').value;
+            const payload = {
+                fullName: document.getElementById('mFullName').value,
+                phoneNumber: document.getElementById('mPhone').value,
+                groupName: document.getElementById('mGroup').value,
+                monthlyFee: Number(document.getElementById('mMonthlyFee').value)
+            };
+
+            const url = id ? `${API}/api/students/${id}` : `${API}/api/students`;
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    showToast(id ? "O'quvchi muvaffaqiyatli tahrirlandi!" : "Yangi o'quvchi qo'shildi!");
+                    closeStudentModal();
+                    loadStudentsData();
+                } else {
+                    const errorText = await getErrorMessage(res);
+                    showToast(errorText, false);
+                }
+            } catch (err) {
+                showToast("Server bilan bog'lanib bo'lmadi", false);
+            }
+        });
+
+        // O'quvchini o'chirish (DELETE)
+        async function deleteStudent(id, name) {
+            if (!confirm(`Haqiqatan ham "${name}" o'quvchisini o'chirmoqchimisiz? Barcha to'lovlari ham o'chib ketadi!`)) return;
+
+            try {
+                const res = await fetch(`${API}/api/students/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("O'quvchi o'chirildi!");
+                    loadStudentsData();
+                    loadDebtors();
+                } else {
+                    const errorText = await getErrorMessage(res);
+                    showToast(errorText, false);
+                }
+            } catch (err) {
+                showToast("Server xatosi", false);
+            }
+        }
+
+        // ==================== TO'LOVLAR (PAYMENTS) ====================
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentId = document.getElementById('paymentStudentSelect').value;
+            const amount = document.getElementById('paymentAmountInput').value;
+            const paidDate = document.getElementById('paymentDateInput').value;
+
+            try {
+                const res = await fetch(`${API}/api/payments`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        studentId: Number(studentId),
+                        amount: Number(amount),
+                        paidDate: paidDate
+                    })
+                });
+
+                if (res.ok) {
+                    showToast("To'lov muvaffaqiyatli kiritildi!");
+                    document.getElementById('paymentAmountInput').value = '';
+                    loadStudentPaymentHistory(studentId);
+                    document.getElementById('historyStudentSelect').value = studentId;
+                    loadDebtors();
+                } else {
+                    const errorText = await getErrorMessage(res);
+                    showToast(errorText, false);
+                }
+            } catch (err) {
+                showToast("Server xatosi", false);
+            }
+        });
+
+        // O'quvchining to'lovlar tarixi
+        async function loadStudentPaymentHistory(studentId) {
+            const tbody = document.getElementById('paymentHistoryTableBody');
+            if (!studentId) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-slate-400">Tarixni ko\'rish uchun o\'quvchini tanlang.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-slate-400">Yuklanmoqda...</td></tr>';
+
+            try {
+                const res = await fetch(`${API}/api/payments/student/${studentId}`);
+                const payments = await res.json();
+
+                if (!payments || payments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-slate-400">Ushbu o\'quvchi bo\'yicha to\'lovlar mavjud emas.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                payments.forEach(p => {
+                    const time = p.createdAt ? p.createdAt.replace('T', ' ').slice(0, 19) : '-';
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-3 font-mono text-xs text-slate-400">#${p.id}</td>
+                            <td class="py-3 px-3 font-bold text-emerald-600">${Number(p.amount).toLocaleString()} so'm</td>
+                            <td class="py-3 px-3 font-medium text-slate-700">${p.paidDate}</td>
+                            <td class="py-3 px-3 text-xs text-slate-400">${time}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-red-500">Tarixni yuklashda xatolik.</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

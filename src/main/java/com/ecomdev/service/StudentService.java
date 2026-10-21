@@ -3,6 +3,8 @@ package com.ecomdev.service;
 import com.ecomdev.dto.student.StudentRequestDTO;
 import com.ecomdev.dto.student.StudentResponseDTO;
 import com.ecomdev.entity.StudentEntity;
+import com.ecomdev.exception.AppBadRequestException;
+import com.ecomdev.exception.ItemNotFoundException;
 import com.ecomdev.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,7 @@ public class StudentService {
     @Transactional
     public StudentResponseDTO createStudent(StudentRequestDTO dto) {
         if (studentRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-            throw new IllegalArgumentException("Ushbu telefon raqamli o'quvchi allaqachon mavjud: " + dto.getPhoneNumber());
+            throw new AppBadRequestException("Ushbu telefon raqamli o'quvchi allaqachon mavjud: " + dto.getPhoneNumber());
         }
 
         StudentEntity student = StudentEntity.builder()
@@ -47,7 +49,7 @@ public class StudentService {
     @Transactional(readOnly = true)
     public StudentResponseDTO getStudentById(Long id) {
         StudentEntity student = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("O'quvchi topilmadi. ID: " + id));
+                .orElseThrow(() -> new ItemNotFoundException("O'quvchi topilmadi. ID: " + id));
         return mapToDTO(student);
     }
 
@@ -55,7 +57,7 @@ public class StudentService {
     @Transactional
     public StudentResponseDTO updateStudent(Long id, StudentRequestDTO dto) {
         StudentEntity student = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("O'quvchi topilmadi. ID: " + id));
+                .orElseThrow(() -> new ItemNotFoundException("O'quvchi topilmadi. ID: " + id));
 
         student.setFullName(dto.getFullName());
         student.setPhoneNumber(dto.getPhoneNumber());
@@ -70,7 +72,7 @@ public class StudentService {
     @Transactional
     public void deleteStudent(Long id) {
         if (!studentRepository.existsById(id)) {
-            throw new IllegalArgumentException("O'chirish uchun o'quvchi topilmadi. ID: " + id);
+            throw new ItemNotFoundException("O'chirish uchun o'quvchi topilmadi. ID: " + id);
         }
         studentRepository.deleteById(id);
     }

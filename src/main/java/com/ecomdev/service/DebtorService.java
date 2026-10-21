@@ -3,6 +3,7 @@ package com.ecomdev.service;
 import com.ecomdev.dto.general.DebtorResponseDTO;
 import com.ecomdev.entity.PaymentEntity;
 import com.ecomdev.entity.StudentEntity;
+import com.ecomdev.exception.AppBadRequestException;
 import com.ecomdev.repository.PaymentRepository;
 import com.ecomdev.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class DebtorService {
             // "2026-10" kabi formatni o'qiydi
             yearMonth = YearMonth.parse(monthStr);
         } catch (DateTimeParseException | NullPointerException e) {
-            throw new IllegalArgumentException("Noto'g'ri oy formati. To'g'ri format: YYYY-MM (Masalan: 2026-10)");
+            throw new AppBadRequestException("Noto'g'ri oy formati. To'g'ri format: YYYY-MM (Masalan: 2026-10)");
         }
 
         // Shu oyning 1-kuni va oxirgi kuni

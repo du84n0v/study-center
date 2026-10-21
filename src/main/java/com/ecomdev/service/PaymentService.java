@@ -4,6 +4,7 @@ import com.ecomdev.dto.payment.PaymentRequestDTO;
 import com.ecomdev.dto.payment.PaymentResponseDTO;
 import com.ecomdev.entity.PaymentEntity;
 import com.ecomdev.entity.StudentEntity;
+import com.ecomdev.exception.ItemNotFoundException;
 import com.ecomdev.repository.PaymentRepository;
 import com.ecomdev.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class PaymentService {
     @Transactional
     public PaymentResponseDTO createPayment(PaymentRequestDTO dto) {
         StudentEntity student = studentRepository.findById(dto.getStudentId())
-                .orElseThrow(() -> new IllegalArgumentException("O'quvchi topilmadi. ID: " + dto.getStudentId()));
+                .orElseThrow(() -> new ItemNotFoundException("O'quvchi topilmadi. ID: " + dto.getStudentId()));
 
         PaymentEntity payment = PaymentEntity.builder()
                 .student(student)
@@ -40,7 +41,7 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public List<PaymentResponseDTO> getPaymentsByStudentId(Long studentId) {
         if (!studentRepository.existsById(studentId)) {
-            throw new IllegalArgumentException("O'quvchi topilmadi. ID: " + studentId);
+            throw new ItemNotFoundException("O'quvchi topilmadi. ID: " + studentId);
         }
 
         return paymentRepository.findByStudentIdOrderByPaidDateDesc(studentId).stream()

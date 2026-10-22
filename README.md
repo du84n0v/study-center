@@ -1,8 +1,6 @@
 # 🎓 O‘quv markazi to‘lovlari hisobi (Study Center)
 
-O‘quv markazi o‘quvchilarining to‘lovlarini yuritish, to‘lovlar tarixini saqlash va tanlangan oy bo‘yicha qarzdorlarni avtomatik hisoblash uchun mini-tizim.
-
-**Ecomdev** dasturchi vakansiyasi sinov topshirig‘i (3-bosqich) doirasida ishlab chiqildi.
+O‘quv markazi o‘quvchilarining to‘lovlarini yuritish, to‘lovlar tarixini saqlash va tanlangan oy bo‘yicha qarzdorlarni avtomatik hisoblash uchun mo‘ljallangan tizim.
 
 ---
 
@@ -16,7 +14,7 @@ O‘quv markazi o‘quvchilarining to‘lovlarini yuritish, to‘lovlar tarixini
 
 ---
 
-## 🚀 3-QISM. Loyihani noldan ishga tushirish yo‘riqnomasi
+## 🚀 Loyihani noldan ishga tushirish yo‘riqnomasi
 
 ### 1. Tizim talablari
 * **JDK 21** (yoki undan yuqori)
@@ -87,7 +85,7 @@ Loyiha muvaffaqiyatli ishga tushgach (`Started StudyCenterApplication in ... sec
 
 ---
 
-## 📋 API Hujjatlari (1-QISM)
+## 📋 API Hujjatlari
 
 ### 1. O‘quvchilar (`/api/students` yoki `/students`)
 * `POST /api/students` — yangi o‘quvchi qo‘shish (validatsiya: ism, takrorlanmas telefon, guruh, oylik to‘lov summasi).
@@ -147,7 +145,7 @@ Loyiha muvaffaqiyatli ishga tushgach (`Started StudyCenterApplication in ... sec
 
 ---
 
-## 💻 Veb-interfeys (2-QISM, B varianti)
+## 💻 Veb-interfeys
 
 Tizim zamonaviy, to‘liq moslashuvchan (responsive) Dashboard (SPA) ko‘rinishida ishlangan:
 1. **«Qarzdorlar (Debt)» bo‘limi** *(sukut bo‘yicha ochiq turadi)*:
@@ -167,7 +165,7 @@ Tizim zamonaviy, to‘liq moslashuvchan (responsive) Dashboard (SPA) ko‘rinish
 
 ---
 
-## 🔮 Agar yana bir hafta vaqtim bo‘lganida nimalarni yaxshilagan bo‘lardim (3-QISM, 2-band)
+## 🔮 Kelgusidagi rejalar va yaxshilanishlar
 
 1. **Kengaytirilgan qidiruv va filtrlash tizimi (Search & Filtering):**
    * **Ism bo‘yicha qidirish:** O‘quvchilar va qarzdorlarni F.I.O bo‘yicha tezkor (harfma-harf) qidirish.
@@ -182,7 +180,7 @@ Tizim zamonaviy, to‘liq moslashuvchan (responsive) Dashboard (SPA) ko‘rinish
      * `STUDENT`: Shaxsiy kabinet orqali faqat o‘zining to‘lovlar tarixi va cheklarini ko‘rish.
 
 3. **Telegram Bot va Avtomatik eslatmalar (Notification):**
-   * Topshiriqdagi A variantini (Telegram bot) veb-interfeys bilan to‘liq integratsiya qilish (botda `/debt` va `/pay` buyruqlari).
+   * Telegram botni veb-interfeys bilan to‘liq integratsiya qilish (bot orqali `/debt` va `/pay` buyruqlari).
    * Har oy oxiriga 3 kun qolganda to‘lov qilmagan o‘quvchilar va ularning ota-onalariga Telegram yoki SMS orqali qarzdorlik haqida avtomatik eslatma yuborish (Spring Scheduler yordamida).
 
 4. **Moliyaviy hisobotlar va Kvitansiyalar eksporti (Excel / PDF):**
